@@ -1,0 +1,124 @@
+//Demonstrate the usage of  “$match”:
+
+> db.movies.aggregate([{ $group : {_id : "$gerne", avg_rating : {$avg : "$imdb_rating"}}}]).pretty()
+{ "_id" : "Drama", "avg_rating" : 8.366666666666667 }
+{ "_id" : "thriller", "avg_rating" : 7.671428571428572 }
+{ "_id" : "suspence", "avg_rating" : 8.85 }
+{ "_id" : "Action", "avg_rating" : 7.533333333333334 }
+{ "_id" : "comedy", "avg_rating" : 7.95 }
+
+
+
+
+//Demonstrate the usage of  “$group”:
+
+> db.movies.aggregate([ { $match :{ gerne : "Drama"}}]).pretty()
+{
+        "_id" : ObjectId("60f0614ade77a168318fcaed"),
+        "movie_name" : "Aspirants",
+        "imdb_rating" : 9.2,
+        "gerne" : "Drama",
+        "feedback" : 92453,
+        "referrable" : "TRUE"
+}
+{
+        "_id" : ObjectId("60f0614ade77a168318fcaee"),
+        "movie_name" : "Flames",
+        "imdb_rating" : 8.6,
+        "gerne" : "Drama",
+        "feedback" : 89453,
+        "referrable" : "FALSE"
+}
+{
+        "_id" : ObjectId("60f0614ade77a168318fcaf0"),
+        "movie_name" : "The Bachelors",
+        "imdb_rating" : 7.9,
+        "gerne" : "Drama",
+        "feedback" : 56000,
+        "referrable" : "FALSE"
+}
+{
+        "_id" : ObjectId("60f0614ade77a168318fcaf2"),
+        "movie_name" : "Baywatch",
+        "imdb_rating" : 8.1,
+        "gerne" : "Drama",
+        "feedback" : 78543,
+        "referrable" : "FALSE"
+}
+{
+        "_id" : ObjectId("60f0614ade77a168318fcaf7"),
+        "movie_name" : "Kabir Singh",
+        "imdb_rating" : 7.6,
+        "gerne" : "Drama",
+        "feedback" : 76894,
+        "referrable" : "TRUE"
+}
+{
+        "_id" : ObjectId("60f0614ade77a168318fcaf8"),
+        "movie_name" : "Three idiots",
+        "imdb_rating" : 8.8,
+        "gerne" : "Drama",
+        "feedback" : 97832,
+        "referrable" : "TRUE"
+}
+
+
+
+//Demonstrate the usage of aggregate pipelines Example 1:
+
+> db.movies.aggregate([{ $match: {gerne: "suspence"}}, { $group : {_id: "$movie_name", avg_imdb_rating: { $avg : "$imdb_rating"}}}])
+{ "_id" : "Breaking Bad", "avg_imdb_rating" : 9.2 }
+{ "_id" : "Stranger Things", "avg_imdb_rating" : 8.5 }
+
+
+//Demonstrate the usage of  aggregate pipelines Example – 2
+
+> db.movies.aggregate([ { $match: { referrable: "TRUE"}}, { $group : { _id: "$movie_name", avg_imdb_rating: { $avg : "$imdb_rating"}}}])
+{ "_id" : "For The Glory", "avg_imdb_rating" : 6.5 }
+{ "_id" : "Bolt", "avg_imdb_rating" : 6.2 }
+{ "_id" : "Stranger Things", "avg_imdb_rating" : 8.5 }
+{ "_id" : "RRR", "avg_imdb_rating" : 6.1 }
+{ "_id" : "Bahubali", "avg_imdb_rating" : 8.9 }
+{ "_id" : "Three idiots", "avg_imdb_rating" : 8.8 }
+{ "_id" : "Kabir Singh", "avg_imdb_rating" : 7.6 }
+{ "_id" : "Gangs of Wsseypur", "avg_imdb_rating" : 8.8 }
+{ "_id" : "Aspirants", "avg_imdb_rating" : 9.2 }
+{ "_id" : "Hungama", "avg_imdb_rating" : 7.6 }
+
+
+
+
+//Demonstrate the “Map-Reduce” aggregate function on this dataset:
+
+
+> var mapper = function(){emit(this.gerne,this["feedback"])}
+> var reduce = function(gerne,feedback){return Array.sum(feedback)}
+> db.movies.mapReduce(mapper,reduce, {out : "Feedbackout"})
+{ "result" : "Feedbackout", "ok" : 1 }
+> db.Feedbackout.find().pretty()
+{ "_id" : "suspence", "value" : 178808 }
+{ "_id" : "Action", "value" : 212877 }
+{ "_id" : "comedy", "value" : 149035 }
+{ "_id" : "thriller", "value" : 518026 }
+{ "_id" : "Drama", "value" : 491175 }
+
+
+//Count the number of movies which belong to the “thriller” category and find out the total number of positive reviews in that category
+
+> db.movies.aggregate([{ $group : {_id : { gerne : "thriller"}, "Total Positive Reviews" : {$sum : "$feedback"}}}])
+{ "_id" : { "gerne" : "thriller" }, "Total Positive Reviews" : 1549921 }
+
+
+
+//Group all the records by “genre” and find out the total number of positive feedbacks by genre.
+
+> db.movies.aggregate([{ $group : {_id : "$gerne", "Total Positive Reviews" : {$sum : "$feedback"}}}]).pretty()
+{ "_id" : "Action", "Total Positive Reviews" : 212877 }
+{ "_id" : "comedy", "Total Positive Reviews" : 149035 }
+{ "_id" : "suspence", "Total Positive Reviews" : 178808 }
+{ "_id" : "thriller", "Total Positive Reviews" : 518026 }
+{ "_id" : "Drama", "Total Positive Reviews" : 491175 }
+
+
+
+
